@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+    php:
+        build:
+            context: ./config/docker/local/php
+            args:
+                - HOST_UID=${HOST_UID}
+        image: marketplace-profiles-php
+        container_name: marketplace-profiles-php
+        networks:
+            net:
+                aliases:
+                    - marketplace-profiles-php
+            local:
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        expose:
+            - "9000"
+        entrypoint: ./config/docker/local/php/docker-entrypoint.sh
+        environment:
+            - COMPOSER_HOME=/var/www/html/var/composer
+            - PHP_IDE_CONFIG
+            - APP_ENV
+    nginx:
+        build: ./config/docker/local/nginx
+        image: marketplace-profiles-nginx
+        container_name: marketplace-profiles-nginx
+        networks:
+            net:
+                aliases:
+                    - marketplace-profiles-nginx
+            local:
+        depends_on:
+            - php
+        ports:
+            - "${SERVER_HTTP_PORT}:80"
+        volumes:
+            - .:/var/www/html
+            - ./var/log:/var/log/nginx
+networks:
+    net:
+        name: marketplace-net
+    local:
+        name: marketplace-profiles-local
